@@ -64,6 +64,9 @@ function selectionSort(arr, compareFunc = (x, y) => ((x - y) > 0)) {
 快速排序：
 quick_sort(p...r) = quick_sort(p...q-1) + quick_sort(q+1...r)
 每一次遍历，在集合中找一个pivot用来比较，比pivot小的部分放一边，比pivot大的部分放一边
+快排的原地算法思想
+- 用一个游标记录分界点，左边部分比pivot小，游标以及右边部分比pivot大
+- 从前往后遍历，如果数值小于pivot，就将该值与游标处交换，游标向前移动一位
 ```js
 // 原地排序
 function partition(arr, begin, end) {
@@ -84,6 +87,7 @@ function partition(arr, begin, end) {
   return partionIndex
 }
 
+// 尾调用处理
 function quickSort(arr, begin, end) {
   if (begin >= end) return arr
 

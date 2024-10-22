@@ -235,13 +235,104 @@ flushSync(() => {
 - 自定义hook
   - 不同组件中共享逻辑
   - 随着时间的推移，代码中大部分的effect都会在自定义hook中。
-  - 自定义的hook命名需要更具体。
-
-  
+  - 自定义的hook命名需要更具体。  
 
 - useMemo: useMemo(callback, [...dependencies])，返回缓存数据，在下一次渲染的时候，会判断dependencies是否发生改变，只会在dependencies发生改变时触发重新计算。
 
-
-
 # React MVVM核心逻辑
+# JSX是什么
+ - 一个 JavaScript 的语法扩展
+ - 防止注入攻击
+
+# Redux
+- redux是一种管理全局状态的一种模式/库，使用被称作"actions"的events。
+- 思想：集中管理全局状态，遵守特定的模式更新状态从而让变化更可遇见。
+- 三个术语：
+  - actions：一个包含type字段的plain object。用来描述要发生的事件。
+  - action creator: 返回action的方法，这样不需要每次手动写action。
+  - reducers: 是一个接受action和state的方法，描述怎么更新状态，并返回新的状态。
+  - store: 当前的redux应用的状态存储在store对象中。
+  - dispatch: 更新状态的唯一方式，该方法传入action对象。
+  - Selectors: 用来从state中提取特定字段值的方法。
+- 单项数据流
+  - 初始化：
+    - 使用根reducer方法创建redux store
+    - store只会调用根reducer方法一次，保存return值为初始状态
+    - 当UI初始渲染，会使用这个初始状态渲染
+  - 更新：
+    - 通常由用户事件触发
+    - dispatch一个action到redux store
+    - store执行reducer方法（通过前一个状态，和action），将返回值保存为一个新的state
+    - store通知所有订阅该store的UI部分更新
+    - 每个UI组件对比依赖的状态值是否发生改变，从而决定是否更新
+>> UI 通过用户事件dispatch -> action -> store执行reducer方法返回新的state -> UI更新
+- 三个核心
+  - 单一真实数据来源。单一全局状态更易于通用应用程序；便于问题定位；
+  - state是只读的，只能通过action来改变state。
+  - reducer只能是纯函数。
+- Redux Toolkit(RTK)对比redux。
+  - 老的redux。
+  ```js
+  const ADD_TODO = 'ADD_TODO'
+  const TODO_TOGGLED = 'TODO_TOGGLED'
+
+  export const addTodo = text => ({
+    type: ADD_TODO,
+    payload: { text, id: nanoid() }
+  })
+
+  export const todoToggled = id => ({
+    type: TODO_TOGGLED,
+    payload: { id }
+  })
+
+  export const todosReducer = (state = [], action) => {
+    switch (action.type) {
+      case ADD_TODO:
+        return state.concat({
+          id: action.payload.id,
+          text: action.payload.text,
+          completed: false
+        })
+      case TODO_TOGGLED:
+        return state.map(todo => {
+          if (todo.id !== action.payload.id) return todo
+
+          return {
+            ...todo,
+            completed: !todo.completed
+          }
+        })
+      default:
+        return state
+    }
+  }
+  ```
+  - RTK
+  ```js
+  import { createSlice } from '@reduxjs/toolkit'
+
+  const todosSlice = createSlice({
+    name: 'todos',
+    initialState: [],
+    reducers: {
+      todoAdded(state, action) {
+        state.push({
+          id: action.payload.id,
+          text: action.payload.text,
+          completed: false
+        })
+      },
+      todoToggled(state, action) {
+        const todo = state.find(todo => todo.id === action.payload)
+        todo.completed = !todo.completed
+      }
+    }
+  })
+
+  export const { todoAdded, todoToggled } = todosSlice.actions
+  export default todosSlice.reducer
+  ```
+  - 两者的不同
+    - 自动生成creators, action。reducer的代码更简洁，可以使用类似immer库的mutating操作实现immutable更新。
 
